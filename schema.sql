@@ -1,0 +1,10 @@
+PRAGMA foreign_keys=ON;
+CREATE TABLE IF NOT EXISTS users(id INTEGER PRIMARY KEY, email TEXT UNIQUE COLLATE NOCASE, password TEXT NOT NULL, admin INTEGER NOT NULL DEFAULT 0);
+CREATE TABLE IF NOT EXISTS sessions(token TEXT PRIMARY KEY, uid INTEGER REFERENCES users(id), expires INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS locations(id INTEGER PRIMARY KEY, name TEXT UNIQUE NOT NULL);
+CREATE TABLE IF NOT EXISTS edges(a INTEGER REFERENCES locations(id), b INTEGER REFERENCES locations(id), metres INTEGER CHECK(metres>0), PRIMARY KEY(a,b));
+CREATE TABLE IF NOT EXISTS reports(id INTEGER PRIMARY KEY, uid INTEGER REFERENCES users(id), type TEXT CHECK(type IN ('Lost','Found')), name TEXT NOT NULL, category TEXT NOT NULL, colour TEXT NOT NULL, place INTEGER REFERENCES locations(id), event_date TEXT NOT NULL, details TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'Open' CHECK(status IN ('Open','Recovered')));
+CREATE TABLE IF NOT EXISTS claims(id INTEGER PRIMARY KEY, report INTEGER REFERENCES reports(id), uid INTEGER REFERENCES users(id), evidence TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'Pending' CHECK(status IN ('Pending','Approved','Rejected')), UNIQUE(report,uid));
+CREATE UNIQUE INDEX IF NOT EXISTS one_approved ON claims(report) WHERE status='Approved';
+INSERT OR IGNORE INTO locations VALUES (1,'Main Gate'),(2,'Library'),(3,'Cafeteria'),(4,'Block A'),(5,'Admin Office'),(6,'Sports Complex'),(7,'Auditorium'),(8,'Remote Annex');
+INSERT OR IGNORE INTO edges VALUES (1,2,120),(1,3,170),(2,4,90),(2,5,160),(3,5,100),(4,5,50),(4,6,180),(5,7,110);
